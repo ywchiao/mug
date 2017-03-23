@@ -1,9 +1,9 @@
 /**
- *  @file       mug.c
+ *  @file       mugc.c
  *  @brief      The entry point of MUG.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       03/08/2017 created.
- *  @date       03/08/2017 last modified.
+ *  @date       03/23/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -11,9 +11,9 @@
  *  The entry point of MUG.
  */
 
-#include "mug.h"
+#include "mugc.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
     int fd_socket;
 
     char buf_send[BUF_SIZE];
@@ -25,9 +25,10 @@ int main(int argc, char **argv) {
     memset(&server_addr, 0, sizeof(server_addr));
 
     server_addr.sin_family=AF_INET;
-    server_addr.sin_port=htons(4004);
+    server_addr.sin_port=htons(strtol(argv[2], NULL, 0));
 
-    inet_pton(AF_INET, "127.0.0.1", &(server_addr.sin_addr));
+    // argv[1]: ip address, for example: 127.0.0.1
+    inet_pton(AF_INET, argv[1], &(server_addr.sin_addr));
 
     connect(fd_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
@@ -43,4 +44,4 @@ int main(int argc, char **argv) {
     } // while
 } // main
 
-// mug.c
+// mugc.c
