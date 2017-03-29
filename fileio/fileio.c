@@ -1,3 +1,15 @@
+/**
+ *  @file       fileio.c.c
+ *  @brief      A sample program showing UNIX's file I/O.
+ *  @author     Yiwei Chiao (ywchiao@gmail.com)
+ *  @date       03/16/2017 created.
+ *  @date       03/16/2017 last modified.
+ *  @version    0.1.0
+ *  @copyright  MIT, (C) 2017 Yiwei Chiao
+ *  @details
+ *
+ *  A sample program showing UNIX's file I/O.
+ */
 
 #include <string.h>
 #include <stdio.h>
@@ -23,4 +35,3 @@ void main() {
 } // main()
 
 // fileio.c
-

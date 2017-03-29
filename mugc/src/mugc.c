@@ -3,7 +3,7 @@
  *  @brief      The entry point of MUG.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       03/08/2017 created.
- *  @date       03/23/2017 last modified.
+ *  @date       03/29/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -13,24 +13,47 @@
 
 #include "mugc.h"
 
+/**
+ * Connect to server ip:port and return the socket.
+ *
+ * @param[in] ip    伺服器 ip 地址
+ * @param[in] port  伺服器通訊埠 (port) 號碼
+ * @return          通訊 socket 的 File Descripter, FD
+ *
+ **/
+int socket_client(char *ip, int port) {
+    int fd_socket;
+    struct sockaddr_in server_addr;
+
+    memset(&server_addr, 0, sizeof(server_addr));
+
+    server_addr.sin_family=AF_INET;
+    server_addr.sin_port = htons(port);
+
+    inet_pton(AF_INET, ip, &(server_addr.sin_addr));
+
+    fd_socket = socket(AF_INET, SOCK_STREAM, 0);
+
+    connect(fd_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
+
+    return fd_socket;
+} // socket_client()
+
+/**
+ * MugC 客戶端程式進入點。
+ *
+ * @param[in] argc 命令列參數個數。
+ * @param[in] argv 命令列參數陣列；每個參數都是一個 string。
+ * @return         程式結束狀態
+ *
+ **/
 int main(int argc, char *argv[]) {
     int fd_socket;
 
     char buf_send[BUF_SIZE];
     char buf_recv[BUF_SIZE];
 
-    struct sockaddr_in server_addr;
-
-    fd_socket=socket(AF_INET, SOCK_STREAM, 0);
-    memset(&server_addr, 0, sizeof(server_addr));
-
-    server_addr.sin_family=AF_INET;
-    server_addr.sin_port=htons(strtol(argv[2], NULL, 0));
-
-    // argv[1]: ip address, for example: 127.0.0.1
-    inet_pton(AF_INET, argv[1], &(server_addr.sin_addr));
-
-    connect(fd_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    fd_socket = socket_client(argv[1], strtol(argv[2], NULL, 0));
 
     while (true) {
         memset(buf_send, 0, BUF_SIZE);
