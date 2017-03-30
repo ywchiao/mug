@@ -24,6 +24,13 @@
 
 #define BUF_SIZE 512
 
+/**
+ *  Printout the usage.
+ *
+ *  @param  none.
+ *
+ *  @return none.
+ **/
 void usage(void) {
     printf("usage:\n");
     printf("    copycat src_file dst_file\n");
@@ -31,11 +38,19 @@ void usage(void) {
     exit(0);
 } // usage();
 
+/**
+ *  copycat 程式進入點。
+ *
+ *  @param[in]  argc 命令列參數個數。
+ *  @param[in]  argv 命令列參數陣列；每個參數都是一個 string。
+ *
+ *  @return     none.
+ **/
 void main(int argc, char *argv[]) {
     int fd_src;
     int fd_dst;
 
-    if (argc < 2) {
+    if (argc != 3) {
         usage(); // 程式使用方式
     } // fi
 
