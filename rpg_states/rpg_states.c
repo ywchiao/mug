@@ -4,7 +4,7 @@
  *              operations.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       04/12/2017 created.
- *  @date       04/12/2017 last modified.
+ *  @date       04/13/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -23,11 +23,12 @@
 #define NPC_FEMALE          2
 #define NPC_BIGENDER        3
 #define NPC_GENDER_MASK     3
+#define NPC_GENDER_SIZE     4
 
 #define NPC_HEALTHY         0
-#define NPC_POISONED        (1 << NPC_GENDER_MASK)
-#define NPC_SICKNESS        (2 << NPC_GENDER_MASK)
-#define NPC_WOUNDED         (4 << NPC_GENDER_MASK)
+#define NPC_POISONED        (1 << NPC_GENDER_SIZE)
+#define NPC_SICKNESS        (2 << NPC_GENDER_SIZE)
+#define NPC_WOUNDED         (4 << NPC_GENDER_SIZE)
 #define NPC_HEALTH_MASK     (NPC_POISONED | NPC_SICKNESS | NPC_WOUNDED)
 
 struct npc_state {
@@ -225,7 +226,7 @@ void usage(void) {
     printf("        w: 受傷 (wounded)\n");
     printf("\n");
     printf("      範例:\n");
-    printf("        rpg_states +bfm\n");
+    printf("        ./rpg_states +msw -s\n");
 
     exit(0);
 } // usage();
@@ -253,8 +254,12 @@ void main(int argc, char *argv[]) {
         if (*argv[i] == '+') {
             states_set(&npc, argv[i]++);
         } // fi
-        else {
+        else if (*argv[i] == '-') {
             states_unset(&npc, argv[i]++);
+        } // if
+        else {
+            printf("錯誤!!! 不支援的操作。\n");
+            usage();
         } // esle
 
         states_dump(&npc);
