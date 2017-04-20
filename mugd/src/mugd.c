@@ -3,7 +3,7 @@
  *  @brief      The entry point of MUG server (daemon).
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       03/08/2017 created.
- *  @date       04/05/2017 last modified.
+ *  @date       04/19/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -110,10 +110,20 @@ int main(int argc, char *argv[]) {
                 do {
                     fd_guest = reception(fd_server);
 
-                    poll_fds[n_guests].fd = fd_guest;
-                    poll_fds[n_guests].events = POLLIN | POLLOUT;
+                    if (fd_guest > 0) {
+                        poll_fds[n_guests].fd = fd_guest;
+                        poll_fds[n_guests].events = POLLIN | POLLOUT;
 
-                    n_guests ++;
+                        n_guests ++;
+                    } // fi
+                    else {
+                        fprintf(
+                            stderr,
+                            "Function: %s@%s:line %d: %s\n",
+                            __func__, __FILE__, __LINE__,
+                            strerror(errno)
+                        );
+                    }
                 } while (fd_guest != -1);
             } // fi
             else {
@@ -127,17 +137,15 @@ int main(int argc, char *argv[]) {
         } // od
 
         for (int i = 0; i < sockets; i ++) {
-            if ((poll_fds[i].revents & POLLOUT) != POLLOUT) {
-                continue;
-            } // fi
+            if ((poll_fds[i].revents & POLLOUT) == POLLOUT) {
+                if (msg_guest[i] != msg_buffer) {
+                    int idx = msg_guest[i];
 
-            if (msg_guest[i] != msg_buffer) {
-                int idx = msg_guest[i];
+                    write(poll_fds[i].fd, buffer[idx], strlen(buffer[idx]) + 1);
+                    printf("send -> %d:%s", poll_fds[i].fd, buffer[idx]);
 
-                write(poll_fds[i].fd, buffer[idx], strlen(buffer[idx]) + 1);
-                printf("send -> %d:%s", poll_fds[i].fd, buffer[idx]);
-
-                msg_guest[i] = (msg_guest[i] + 1) % BUF_MSGS;
+                    msg_guest[i] = (msg_guest[i] + 1) % BUF_MSGS;
+                } // fi
             } // fi
         } // od
     } // while
