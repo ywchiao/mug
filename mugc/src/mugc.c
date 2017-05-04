@@ -3,7 +3,7 @@
  *  @brief      The entry point of MUG.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       03/08/2017 created.
- *  @date       04/05/2017 last modified.
+ *  @date       05/04/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -27,14 +27,18 @@ int socket_to_server(char *ip, int port) {
 
     memset(&server_addr, 0, sizeof(server_addr));
 
-    server_addr.sin_family=AF_INET;
+    server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
 
     inet_pton(AF_INET, ip, &(server_addr.sin_addr));
 
     fd_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
-    connect(fd_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    connect(
+        fd_socket,
+        (struct sockaddr *)&server_addr,
+        sizeof(server_addr)
+    );
 
     return fd_socket;
 } // socket_to_server()
@@ -96,16 +100,11 @@ int main(int argc, char *argv[]) {
             } // fi
 
             if ((fd[1].revents & POLLIN) == POLLIN) {
-                while (true) {
-                    memset(buf_recv, 0, BUF_SIZE);
+                memset(buf_recv, 0, BUF_SIZE);
 
-                    if (read(fd[1].fd, buf_recv, BUF_SIZE) > 0) {
-                        printf("%s", buf_recv);
-                    } // fi
-                    else {
-                        break;
-                    } // esle
-                } // od
+                if (read(fd[1].fd, buf_recv, BUF_SIZE) > 0) {
+                    printf("%s", buf_recv);
+                } // fi
             } // fi
 
             if ((fd[1].revents & POLLOUT) == POLLOUT) {
@@ -113,7 +112,7 @@ int main(int argc, char *argv[]) {
                     write(
                         fd[1].fd,
                         buf_send[msg_sent],
-                        strlen(buf_send[msg_sent]) + 1
+                        strlen(buf_send[msg_sent])
                     );
 
                     msg_sent = (msg_sent + 1) % BUF_MSGS;

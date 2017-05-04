@@ -3,7 +3,7 @@
  *  @brief      The entry point of MUG server (daemon).
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       03/08/2017 created.
- *  @date       04/19/2017 last modified.
+ *  @date       05/04/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
                             __func__, __FILE__, __LINE__,
                             strerror(errno)
                         );
-                    }
+                    } // esle
                 } while (fd_guest != -1);
             } // fi
             else {
@@ -141,7 +141,12 @@ int main(int argc, char *argv[]) {
                 if (msg_guest[i] != msg_buffer) {
                     int idx = msg_guest[i];
 
-                    write(poll_fds[i].fd, buffer[idx], strlen(buffer[idx]) + 1);
+                    write(
+                        poll_fds[i].fd,
+                        buffer[idx],
+                        strlen(buffer[idx])
+                    );
+
                     printf("send -> %d:%s", poll_fds[i].fd, buffer[idx]);
 
                     msg_guest[i] = (msg_guest[i] + 1) % BUF_MSGS;
