@@ -87,25 +87,42 @@ void states_set(uint64_t *states, int attrs, char *values[]) {
 
             // 設定 *敏捷* (agility) 屬性
             case 'a':
-                // 請加上相對應的程式碼，
+                // 下面的程式碼會
                 // 將 value_new 的值記錄在
                 // *敏捷* (agility) 屬性的位置。
+
+                // 清除原先的 *敏捷* (agility) 屬性
+                *states &= ~(NPC_ATTR_MASK << NPC_ATTR_OFFSET_AGILITY);
+
+                // 設定新的 *敏捷* (agility) 屬性
+                *states |= (value_new << NPC_ATTR_OFFSET_AGILITY);
 
                 break;
 
             // 設定 *智力* (intelligence) 屬性
             case 'i':
-                // 請加上相對應的程式碼，
+                // 下面的程式碼會
                 // 將 value_new 的值記錄在
                 // *智力* (intelligence) 屬性的位置。
 
+                // 清除原先的 *智力* (intelligence) 屬性
+                *states &= ~(NPC_ATTR_MASK << NPC_ATTR_OFFSET_INTELLIGENCE);
+
+                // 設定新的 *智力* (intelligence) 屬性
+                *states |= (value_new << NPC_ATTR_OFFSET_INTELLIGENCE);
                 break;
 
             // 設定 *力量* (strength) 屬性
             case 's':
-                // 請加上相對應的程式碼，
+                // 下面的程式碼會
                 // 將 value_new 的值記錄在
                 // *力量* (strength) 屬性的位置。
+
+                // 清除原先的 *力量* (strength) 屬性
+                *states &= ~(NPC_ATTR_MASK << NPC_ATTR_OFFSET_STRENGTH);
+
+                // 設定新的 *力量* (strength) 屬性
+                *states |= (value_new << NPC_ATTR_OFFSET_STRENGTH);
 
                 break;
 
