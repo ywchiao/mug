@@ -90,6 +90,7 @@ int main(int argc, char *argv[]) {
     printf("MUG server started at %s:%s ...\n", "127.0.0.1", argv[1]);
 
     poll_fds[0].fd = fd_server;
+    // 下面這行程式的作用是什麼？
     poll_fds[0].events = POLLIN;
 
     while (true) {
@@ -99,7 +100,11 @@ int main(int argc, char *argv[]) {
 
         sockets = n_guests;
 
+        // 處理聊天訊息
+        // 如果有 *客戶* (某個 fd) 傳送了資料進來，接收它
         for (int i = 0; i < sockets; i ++) {
+            // 下面這段 if 陳述裡
+            // 和 POLLIN 作 & 運算的目的是什麼？
             if ((poll_fds[i].revents & POLLIN) != POLLIN) {
                 continue;
             } // fi
@@ -112,6 +117,8 @@ int main(int argc, char *argv[]) {
 
                     if (fd_guest > 0) {
                         poll_fds[n_guests].fd = fd_guest;
+                        // 下面這行的目的是什麼？
+                        // 為什麼和第 94 行的程式碼不相同？
                         poll_fds[n_guests].events = POLLIN | POLLOUT;
 
                         n_guests ++;
@@ -136,7 +143,11 @@ int main(int argc, char *argv[]) {
             } // esle
         } // od
 
+        // 處理訊息 *群播* (multicast)
+        // 將聊天訊息傳遞給聊天室的所有人
         for (int i = 0; i < sockets; i ++) {
+            // 下面這段 if 陳述裡，
+            // 和 POLLOUT 作 & 運算的目的是什麼？
             if ((poll_fds[i].revents & POLLOUT) == POLLOUT) {
                 if (msg_guest[i] != msg_buffer) {
                     int idx = msg_guest[i];
