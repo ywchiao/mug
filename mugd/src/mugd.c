@@ -3,13 +3,17 @@
  *  @brief      The entry point of MUG server (daemon).
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       03/08/2017 created.
- *  @date       05/17/2017 last modified.
+ *  @date       05/25/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
  *
  *  The entry point of MUG server (daemon).
  */
+
+#include "msg.h"
+#include "user.h"
+#include "msg_buffer.h"
 
 #include "mugd.h"
 
@@ -71,14 +75,21 @@ void usage(void) {
  *  @return     新連線的 file descriptor; 或 -1, 沒有更多的連線要求
  **/
 int reception(int fd_server) {
-    char *welcome = "Welcome to the world of MUG.\n";
+    struct msg greeting;
+    char *welcome = "Welcome to the world of MUG.\nWhat is your name?";
     int fd_guest = -1;
+
+    memset(&greeting, 0, sizeof(struct msg));
+
+    greeting.type = MSG_WELCOME;
+    strcpy(greeting.source, "伺服");
+    strcpy(greeting.text, welcome);
 
     fd_guest = accept(fd_server, (struct sockaddr *)NULL, NULL);
 
     if (fd_guest > 0) {
-        write(fd_guest, welcome, strlen(welcome) + 1);
-        printf("send -> %s", welcome);
+        write(fd_guest, &greeting, sizeof(struct msg));
+        printf("send -> %s\n", greeting.text);
     } // fi
     else if (!((errno == EAGAIN) || (errno == EWOULDBLOCK))) {
         // if not no further connection requests (EAGAIN || EWOULDBLOCK)
@@ -100,27 +111,25 @@ int reception(int fd_server) {
  *  將客戶端送來的的訊息， *暫存* 在訊息暫存區 (msg_buffer)
  *
  *  @param[in]  poll_fds        目前已連線 (過) 的客戶端 pollfd 結構
- *  @param[in]  msg_buffer      訊息暫存區
- *  @param[in]  msg_index       訊息暫存區 (msg_buffer) 的空位索引 (index)
  *  @param[in]  guests          目前的連線客戶端總數
  *
  *  @return     下一個可用的訊息暫存區索引 (index)
  **/
-int msg_input(
-    struct pollfd *poll_fds, char msg_buffer[][BUF_SIZE],
-    int msg_index, int guests
-) {
+void msg_input(struct pollfd *poll_fds, struct user *clients, int guests) {
     // 處理聊天訊息
     for (int i = 1; i < guests; i ++) {
-        // 如果有 *客戶* (某個 fd) 傳送了資料進來，接收它
+        // 如果有 _客戶_ (某個 fd) 傳送了資料進來，接收它
         if ((poll_fds[i].revents & POLLIN) == POLLIN) {
             int count = 0;
+            struct msg *msg_buffer = NULL;
 
-            // 將 *訊息暫存區* (msg_buffer) 的記憶體空間清空
-            memset(msg_buffer[msg_index], 0, BUF_SIZE);
+            msg_buffer = buf4write();
+
+            // 將 _訊息暫存區_ (msg_buffer) 的記憶體空間清空
+            memset(msg_buffer, 0, sizeof(struct msg));
 
             // count 代表 read(...) 讀到的字元 (character) 數
-            count = read(poll_fds[i].fd, msg_buffer[msg_index], BUF_SIZE);
+            count = read(poll_fds[i].fd, msg_buffer, sizeof(struct msg));
 
             // 如果 count == 0，代表客戶端 (client) 已離線
             if (count == 0) {
@@ -131,52 +140,66 @@ int msg_input(
                 poll_fds[i].fd = -1;
             } // fi
             else {
-                printf("recv <- %d:%s", poll_fds[i].fd, msg_buffer[msg_index]);
+                // 客戶端傳來它的 _暱稱_ (nickname)
+                if (msg_buffer->type == MSG_NICKNAME) {
+                    char *nick = msg_buffer->text;
 
-                // 更新 *訊息暫存區* 的索引 
-                msg_index = (msg_index + 1) % BUF_MSGS;
+                    // 移除字串尾端的 "\r\n" 字元
+                    nick[strcspn(nick, "\r\n")] = '\0';
+
+                    // 將客戶 nickname 保留下來
+                    strcpy(clients[i].nick, nick);
+                } // fi
+
+                printf(
+                    "recv <- %d:%s:%s",
+                    poll_fds[i].fd,
+                    msg_buffer->source,
+                    msg_buffer->text
+                );
+
+                // 將客戶 nickname 放入 _訊息物件_ 的 source 欄
+                strcpy(msg_buffer->source, clients[i].nick);
             } // esle
         } // fi
     } // od
-
-    return msg_index;
 } // msg_input()
 
 /**
  *  將收到的訊息， *廣播* (broadcast) 給群裡的所有人
  *
  *  @param[in]  poll_fds        目前已連線 (過) 的客戶端 pollfd 結構
- *  @param[in]  msg_buffer      伺服收到/暫存的訊息
- *  @param[in]  msg_index       訊息暫存區 (msg_buffer) 的空位索引 (index)
+ *  @param[in]  clients      伺服收到/暫存的訊息
  *  @param[in]  guests          目前的連線客戶端總數
- *  @param[in]  msg_guest_idx   目前客戶端 *已* 收到的訊息索引
  *
  *  @return     none.
  **/
-void msg_output(
-    struct pollfd *poll_fds, char msg_buffer[][BUF_SIZE],
-    int msg_index, int guests, int *msg_guest_idx
-) {
+void msg_output(struct pollfd *poll_fds, struct user *clients, int guests) {
     // 處理訊息 *群播* (multicast)
     // 將聊天訊息傳遞給聊天室的所有人
     for (int i = 0; i < guests; i ++) {
         // 檢查 poll_fds[i] 是否準備好可以接收 output 訊息
         if ((poll_fds[i].revents & POLLOUT) == POLLOUT) {
             // idx 代表特定客戶端 *預計接收* 的訊息索引
-            int idx = msg_guest_idx[i];
+            struct msg *message = NULL;
 
-            // 如果有新的訊息等代接收
-            if (idx != msg_index) {
+            message = buf4read(&clients[i].msg_idx);
+
+            // 如果有新的訊息等待傳送
+            if (message != NULL) {
                 write(
                     poll_fds[i].fd,
-                    msg_buffer[idx],
-                    strlen(msg_buffer[idx])
+                    message,
+                    sizeof(struct msg)
                 );
 
-                printf("send -> %d:%s", poll_fds[i].fd, msg_buffer[idx]);
-
-                // 更新 *下一次* 要接收的訊息索引
-                msg_guest_idx[i] = (idx + 1) % BUF_MSGS;
+                printf(
+                    "send -> %d:%d:%s:%s\n",
+                    clients[i].msg_idx,
+                    poll_fds[i].fd,
+                    clients[i].nick,
+                    message->text
+                );
             } // fi
         } // fi
     } // od
@@ -191,7 +214,7 @@ void msg_output(
  *
  *  @return     目前已連線的客戶端總數
  **/
-int guest_new(struct pollfd *poll_fds, int n_guests) {
+int guest_new(struct pollfd *poll_fds, struct user *clients, int n_guests) {
     int fd_guest = -1;
     int fd_server = poll_fds[0].fd;
 
@@ -200,6 +223,10 @@ int guest_new(struct pollfd *poll_fds, int n_guests) {
 
         if (fd_guest > 0) {
             poll_fds[n_guests].fd = fd_guest;
+
+            clients[n_guests].nick[0] = 0;
+            clients[n_guests].msg_idx = 0;
+
             // 設定對 *新*連線，n_guests，要監測它的
             // input 和 output 事件
             poll_fds[n_guests].events = POLLIN | POLLOUT;
@@ -220,11 +247,9 @@ int guest_new(struct pollfd *poll_fds, int n_guests) {
  *  @return     程式結束狀態
  **/
 int main(int argc, char *argv[]) {
-    char msg_buffer[BUF_MSGS][BUF_SIZE];
     int n_guests = 1;
-    int msg_guest_idx[MAX_GUESTS] = {0};
-    int msg_index = 0;
     struct pollfd poll_fds[MAX_GUESTS];
+    struct user clients[MAX_GUESTS];
 
     if (argc != 2) {
         usage();
@@ -245,18 +270,14 @@ int main(int argc, char *argv[]) {
 
         // 處理新的連線要求
         if ((poll_fds[0].revents & POLLIN) == POLLIN) {
-            n_guests = guest_new(poll_fds, n_guests);
+            n_guests = guest_new(poll_fds, clients, n_guests);
         } // fi
 
         // 接收客戶端送來的訊息
-        msg_index = msg_input(
-            poll_fds, msg_buffer, msg_index, sockets
-        );
+        msg_input(poll_fds, clients, sockets);
 
         // 將客戶端傳來的訊息， *廣播* 給所有連線客戶端
-        msg_output(
-            poll_fds, msg_buffer, msg_index, sockets, msg_guest_idx
-        );
+        msg_output(poll_fds, clients, sockets);
     } // while
 } // main()
 

@@ -3,13 +3,16 @@
  *  @brief      The header file for mugc.c.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       03/08/2017 created.
- *  @date       05/04/2017 last modified.
+ *  @date       05/25/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
  *
  *  The header file for mugc.c.
  */
+
+#ifndef __MUGC_H__
+#define __MUGC_H__
 
 #include <errno.h>
 
@@ -32,7 +35,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#define BUF_MSGS 256
-#define BUF_SIZE 128
+#define STATE_CONNECTING 0
+#define STATE_LOGIN      1
+#define STATE_CHATTING   2
+
+#endif
 
 // mugc.h

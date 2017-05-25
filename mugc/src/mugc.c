@@ -3,13 +3,16 @@
  *  @brief      The entry point of MUG.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       03/08/2017 created.
- *  @date       05/04/2017 last modified.
+ *  @date       05/25/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
  *
  *  The entry point of MUG.
  */
+
+#include "msg.h"
+#include "msg_buffer.h"
 
 #include "mugc.h"
 
@@ -68,54 +71,73 @@ void usage(void) {
 int main(int argc, char *argv[]) {
     int fd_server;
     struct pollfd fd[2];
-    char buf_send[BUF_MSGS][BUF_SIZE] = {0};
-    int msg_buffer = 0;
     int msg_sent = 0;
+    int state = STATE_CONNECTING;
 
     if (argc != 3) {
         usage();
     } // fi
+
+    fd_server = socket_to_server(argv[1], strtol(argv[2], NULL, 0));
 
     fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) | O_NONBLOCK);
 
     fd[0].fd = STDIN_FILENO;
     fd[0].events = POLLIN;
 
-    fd_server = socket_to_server(argv[1], strtol(argv[2], NULL, 0));
-
     fd[1].fd = fd_server;
     fd[1].events = POLLIN | POLLOUT;
 
     while (true) {
         int c = 0;
-        char buf_recv[BUF_SIZE];
+        struct msg *buf_msg;
 
         c = poll(fd, 2, -1);
 
         if (c > 0) {
             if ((fd[0].revents & POLLIN) == POLLIN) {
-               read(fd[0].fd, buf_send[msg_buffer], BUF_SIZE);
+                if (state == STATE_CONNECTING) {
+                    char buf_dump[MSG_LENGTH];
 
-               msg_buffer = (msg_buffer + 1) % BUF_MSGS;
+                    read(fd[0].fd, buf_dump, MSG_LENGTH);
+                } // fi
+                else {
+                    buf_msg = buf4write();
+
+                    buf_msg->type = MSG_MESSAGE;
+
+                    if (state & STATE_LOGIN) {
+                        buf_msg->type = MSG_NICKNAME;
+                        state &= (~STATE_LOGIN);
+                    } // fi
+
+                    read(fd[0].fd, buf_msg->text, MSG_LENGTH);
+                } // esle
             } // fi
 
             if ((fd[1].revents & POLLIN) == POLLIN) {
-                memset(buf_recv, 0, BUF_SIZE);
+                struct msg msg_buf = {0} ;
 
-                if (read(fd[1].fd, buf_recv, BUF_SIZE) > 0) {
-                    printf("%s", buf_recv);
+                memset(&msg_buf, 0, sizeof(struct msg));
+
+                if (read(fd[1].fd, &msg_buf, sizeof(struct msg)) > 0) {
+                    printf("%s 說: %s\n", msg_buf.source, msg_buf.text);
+                    fflush(stdout);
+
+                    if (msg_buf.type == MSG_WELCOME) {
+                        state |= STATE_LOGIN;
+                    } // fi
+                    else {
+                        state |= STATE_CHATTING;
+                    } // esle
                 } // fi
             } // fi
 
             if ((fd[1].revents & POLLOUT) == POLLOUT) {
-                if (msg_sent != msg_buffer) {
-                    write(
-                        fd[1].fd,
-                        buf_send[msg_sent],
-                        strlen(buf_send[msg_sent])
-                    );
+                buf_msg = buf4read(&msg_sent);
 
-                    msg_sent = (msg_sent + 1) % BUF_MSGS;
+                if (buf_msg) {
+                    write(fd[1].fd, buf_msg, sizeof(struct msg));
                 }// fi
             } // fi
         } // fi
