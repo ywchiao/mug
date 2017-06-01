@@ -1,14 +1,14 @@
 /**
  *  @file       user.h
- *  @brief      The header file for user.c.
+ *  @brief      The structure definition of struct user.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       05/24/2017 created.
- *  @date       05/24/2017 last modified.
+ *  @date       05/31/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
  *
- *  The header file of user.c
+ *  The structure definition of struct user.
  */
 
 #ifndef __USER_H__

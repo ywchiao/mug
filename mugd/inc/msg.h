@@ -1,14 +1,14 @@
 /**
  *  @file       msg.h
- *  @brief      The header file for msg.c.
+ *  @brief      The defintion of struct msg.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       05/24/2017 created.
- *  @date       05/24/2017 last modified.
+ *  @date       05/31/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
  *
- *  The header file of msg.c
+ *  The structure defintion of struct msg.
  */
 
 #ifndef __MSG_H__

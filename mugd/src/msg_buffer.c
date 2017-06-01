@@ -3,13 +3,15 @@
  *  @brief      The ring-buffer of messages.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       05/24/2017 created.
- *  @date       05/25/2017 last modified.
+ *  @date       05/31/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
  *
  *  The ring-buffer of messages.
  */
+
+#include <stddef.h>
 
 #include "msg_buffer.h"
 
