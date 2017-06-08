@@ -3,7 +3,7 @@
  *  @brief      The msg I/O routines.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       05/31/2017 created.
- *  @date       05/31/2017 last modified.
+ *  @date       06/08/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -16,10 +16,15 @@
 
 #include <unistd.h>
 
+#include "logging.h"
+
 #include "msg.h"
 #include "msg_buffer.h"
 
 #include "msg_io.h"
+
+static char str_msg[MSG_LENGTH * 2];
+static char str_buf[MSG_LENGTH * 2];
 
 /**
  *  將客戶端送來的的訊息， *暫存* 在訊息暫存區 (msg_buffer)
@@ -75,6 +80,16 @@ void msg_input(struct pollfd *poll_fds, struct user *clients, int guests) {
 
                 // 將客戶 nickname 放入 _訊息物件_ 的 source 欄
                 strcpy(msg_buffer->source, clients[i].nick);
+
+                msg_2str(msg_buffer, str_msg, MSG_LENGTH *2);
+
+                snprintf(
+                    str_buf, MSG_LENGTH * 2,
+                    "<- socket[%d] %s\n",
+                    poll_fds[i].fd, str_msg
+                );
+
+                logging(str_buf);
             } // esle
         } // fi
     } // od
@@ -115,6 +130,16 @@ void msg_output(struct pollfd *poll_fds, struct user *clients, int guests) {
                     clients[i].nick,
                     message->text
                 );
+
+                msg_2str(message, str_msg, MSG_LENGTH *2);
+
+                snprintf(
+                    str_buf, MSG_LENGTH * 2,
+                    "-> socket[%d] %s\n",
+                    poll_fds[i].fd, str_msg
+                );
+
+                logging(str_buf);
             } // fi
         } // fi
     } // od

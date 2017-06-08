@@ -3,7 +3,7 @@
  *  @brief      The server routines of mugd.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       05/31/2017 created.
- *  @date       05/31/2017 last modified.
+ *  @date       06/08/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -16,6 +16,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "logging.h"
+#include "msg.h"
 #include "msg_io.h"
 #include "socket_io.h"
 #include "user.h"
@@ -73,6 +75,8 @@ void main_loop(int fd_socket) {
     // 對 server_socket，只監測 input 事件 (客戶端的連線要求)
     poll_fds[0].events = POLLIN;
 
+    logging_start("./mugd.log");
+
     while (true) {
         int sockets = 0;
 
@@ -83,7 +87,17 @@ void main_loop(int fd_socket) {
 
         // 處理新的連線要求
         if ((poll_fds[0].revents & POLLIN) == POLLIN) {
+            char str_buf[MSG_LENGTH * 2];
+
             n_guests = guest_new(poll_fds, clients, n_guests);
+
+            snprintf(
+                str_buf, MSG_LENGTH * 2,
+                "<- socket[%d] %s\n",
+                poll_fds[sockets].fd, "entered."
+            );
+
+            logging(str_buf);
         } // fi
 
         // 接收客戶端送來的訊息
