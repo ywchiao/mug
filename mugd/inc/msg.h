@@ -3,7 +3,7 @@
  *  @brief      The defintion of struct msg.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       05/24/2017 created.
- *  @date       06/08/2017 last modified.
+ *  @date       06/14/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -14,7 +14,7 @@
 #ifndef __MSG_H__
 #define __MSG_H__
 
-#define MSG_LENGTH    128
+#define MSG_LENGTH       128
 
 #define MSG_WELCOME      0
 #define MSG_MESSAGE      1

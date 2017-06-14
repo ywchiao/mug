@@ -3,7 +3,7 @@
  *  @brief      The header file for msg_buffer.c.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       05/24/2017 created.
- *  @date       05/31/2017 last modified.
+ *  @date       06/08/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -14,11 +14,15 @@
 #ifndef __MSG_BUFFER_H__
 #define __MSG_BUFFER_H__
 
+#include <stdbool.h>
+
 #include "msg.h"
 
 #define BUF_MSGS    256
 
-struct msg *buf4read(int *);
+bool is_empty(int);
+
+struct msg *buf4read(int);
 struct msg *buf4write(void);
 
 #endif

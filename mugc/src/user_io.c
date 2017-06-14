@@ -3,7 +3,7 @@
  *  @brief      The user I/O related routines on the client side.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       06/01/2017 created.
- *  @date       06/02/2017 last modified.
+ *  @date       06/15/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -35,19 +35,17 @@ int async_keyboard(void) {
 /**
  *  接收使用者的鍵盤輸入。
  *
- *  @param[in]  poll_fd 監控鍵盤的 struct pollfd 結構指標。
+ *  @param[in]  fd      鍵盤輸入的 file descriptor
  *  @param[in]  msg_buf 接收鍵盤輸入的文字緩衝區。
  *
  *  @return     由鍵盤讀入的 bytes 總數。
  **/
-int user_input(struct pollfd *poll_fd, char *msg_buf) {
+int user_input(int fd, char *msg_buf) {
     int bytes = 0;
 
-    if ((poll_fd->revents & POLLIN) == POLLIN) {
-        memset(msg_buf, 0, MSG_LENGTH);
+    memset(msg_buf, 0, MSG_LENGTH);
 
-        bytes = read(poll_fd->fd, msg_buf, MSG_LENGTH);
-    } // fi
+    bytes = read(fd, msg_buf, MSG_LENGTH);
 
     return bytes;
 } // user_input();

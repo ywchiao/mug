@@ -3,7 +3,7 @@
  *  @brief      The server routines of mugd.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       05/31/2017 created.
- *  @date       06/08/2017 last modified.
+ *  @date       06/15/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -16,6 +16,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "mug.h"
+
 #include "logging.h"
 #include "msg.h"
 #include "msg_io.h"
@@ -27,50 +29,42 @@
 /**
  *  接受新的客戶端連線，同時放入 poll_fds 中，由 poll() 監控
  *
- *  @param[in]  poll_fds 存放已連線客戶端 pollfd 結構的陣列指標
- *  @param[in]  clients  存放客戶端相關資料 user 結構的陣列指標
- *  @param[in]  n_guests 目前已連線 (過) 的客戶端總數
- *
  *  @return     目前已連線的客戶端總數
  **/
-int guest_new(struct pollfd *poll_fds, struct user *clients, int n_guests) {
+void guest_new(int fd_server) {
     int fd_guest = -1;
-    int fd_server = poll_fds[0].fd;
 
     do {
         fd_guest = socket_accept(fd_server);
 
         if (fd_guest > 0) {
-            poll_fds[n_guests].fd = fd_guest;
+            char str_buf[MSG_LENGTH * 2];
 
-            clients[n_guests].nick[0] = 0;
-            clients[n_guests].msg_idx = 0;
+            user_enter(fd_guest);
 
-            // 設定對 *新*連線，n_guests，要監測它的
-            // input 和 output 事件
-            poll_fds[n_guests].events = POLLIN | POLLOUT;
+            snprintf(
+                str_buf, MSG_LENGTH * 2,
+                "<- socket[%d] %s",
+                fd_guest, "entered."
+            );
 
-            n_guests ++;
+            logging(str_buf);
         } // fi
     } while (fd_guest != -1);
-
-    return n_guests;
 } // guest_new()
 
 /**
  *  主迴圈
  *
- *  @param  fd_socket 存放 server_socket 的 file descripter (FD).
+ *  @param  fd_server 存放 server_socket 的 file descripter (FD).
  *
  *  @return none.
  **/
-void main_loop(int fd_socket) {
-    int n_guests = 1;
-    struct pollfd poll_fds[MAX_GUESTS];
-    struct user clients[MAX_GUESTS];
+void main_loop(int fd_server) {
+    struct pollfd poll_fds[MAX_CLIENTS + 1];
 
     // 利用 poll() 來監測 socket 活動 (activities)
-    poll_fds[0].fd = fd_socket;
+    poll_fds[0].fd = fd_server;
 
     // 對 server_socket，只監測 input 事件 (客戶端的連線要求)
     poll_fds[0].events = POLLIN;
@@ -78,33 +72,43 @@ void main_loop(int fd_socket) {
     logging_start("./mugd.log");
 
     while (true) {
-        int sockets = 0;
+        int links = user_counts() + 1;
+
+        // 建立要利用 poll() 監控的 fd 陣列
+        for (int i = 1; i < links; i ++) {
+            poll_fds[i].fd = user_get_fd(i);
+            poll_fds[i].events = POLLIN | POLLOUT;
+        } // od
 
         // 監控是否有新的 *通訊事件* 發生
-        poll(poll_fds, n_guests, -1);
-
-        sockets = n_guests;
+        poll(poll_fds, links, -1);
 
         // 處理新的連線要求
         if ((poll_fds[0].revents & POLLIN) == POLLIN) {
-            char str_buf[MSG_LENGTH * 2];
-
-            n_guests = guest_new(poll_fds, clients, n_guests);
-
-            snprintf(
-                str_buf, MSG_LENGTH * 2,
-                "<- socket[%d] %s\n",
-                poll_fds[sockets].fd, "entered."
-            );
-
-            logging(str_buf);
+            guest_new(fd_server);
         } // fi
 
-        // 接收客戶端送來的訊息
-        msg_input(poll_fds, clients, sockets);
-
         // 將客戶端傳來的訊息， *廣播* 給所有連線客戶端
-        msg_output(poll_fds, clients, sockets);
+        for (int i = 1; i < links; i ++) {
+            // 檢查 poll_fds[i] 是否準備好可以接收 output 訊息
+            if ((poll_fds[i].revents & POLLOUT) == POLLOUT) {
+                msg_output(i);
+            } // fi
+        } // od
+
+        // 接收客戶端送來的訊息
+        for (int i = 1; i < links; i ++) {
+            // 如果有_客戶_ (某個 fd) 傳送了資料進來，接收它
+            if ((poll_fds[i].revents & POLLIN) == POLLIN) {
+                if (msg_input(i) == 0) {
+                    // 使用者已離線
+                    user_left(i);
+                } // fi
+            } // fi
+        } // od
+
+        // 清除已離線的使用者
+        user_clear();
     } // while
 } // main_loop()
 
@@ -116,14 +120,15 @@ void main_loop(int fd_socket) {
  *  @return none.
  **/
 void server_start(int port) {
-    int fd_socket = -1;
+    int fd_server = -1;
 
     // 啟動 server_socket
-    fd_socket = socket_listen(port);
+    fd_server = socket_listen(port);
 
     printf("MUG server started at %s:%d ...\n", "127.0.0.1", port);
 
-    main_loop(fd_socket);
+    // 主迴圈
+    main_loop(fd_server);
 } // server_start()
 
 // server.c

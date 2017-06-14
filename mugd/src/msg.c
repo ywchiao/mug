@@ -30,9 +30,9 @@ char *msg_type2str(int msgtype) {
         ""
     };
 
-    if (msgtype > (sizeof(msg_type) / sizeof(char *))) {
-        msgtype = (sizeof(msg_type) / sizeof(char *));
-    } // fi
+    int n_types = (sizeof(msg_type) / sizeof(char *));
+
+    msgtype = (msgtype > n_types) ? n_types : msgtype;
 
     return msg_type[msgtype];
 } // msg_type2str()
@@ -48,7 +48,7 @@ char *msg_type2str(int msgtype) {
  **/
 void msg_2str(const struct msg *msg, char *msg_str, int size) {
     snprintf(msg_str, size,
-        "source[%s] type[%d:%s] text[%s]\n",
+        "source[%s] type[%d:%s] text[%s]",
         msg->source,
         msg->type, msg_type2str(msg->type),
         msg->text

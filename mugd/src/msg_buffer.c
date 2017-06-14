@@ -3,7 +3,7 @@
  *  @brief      The ring-buffer of messages.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       05/24/2017 created.
- *  @date       05/31/2017 last modified.
+ *  @date       06/08/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -20,11 +20,22 @@ static int tail = 0;
 static struct msg buffers[BUF_MSGS];
 
 /**
+ *  檢查是否_所有_訊息均被讀取
+ *
+ *  @param  index 目前客戶端已讀取訊息的素引
+ *
+ *  @return true: 所有訊息均已讀取; false: otherwise.
+ **/
+bool is_empty(int index) {
+    return ((index % BUF_MSGS) == head);
+} // is_empty()
+
+/**
  *  傳回下一個可供 _讀取_ 的訊息物件。
  *
  *  將已讀取訊息索引 (*index) 和暫存訊息的索引 (head) 作比較；
  *    如果有尚未讀取的訊息 ->
- *      傳回那個訊息，同時更新已讀取訊息索引 (*index);
+ *      傳回那個訊息;
  *    如果訊息均已讀取 ->
  *      傳回 NULL;
  *
@@ -32,14 +43,12 @@ static struct msg buffers[BUF_MSGS];
  *
  *  @return 下一個可讀的暫存訊息物件指標 (struct msg *)
  **/
-struct msg *buf4read(int *index) {
+struct msg *buf4read(int index) {
     struct msg *buf = NULL;
-    int idx = *index;
+    int idx = index % BUF_MSGS;
 
     if (idx != head) {
         buf = &buffers[idx];
-
-        *index = ((idx + 1) % BUF_MSGS);
     } // fi
 
     return buf;
