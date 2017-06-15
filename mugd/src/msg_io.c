@@ -3,7 +3,7 @@
  *  @brief      The msg I/O routines.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       05/31/2017 created.
- *  @date       06/14/2017 last modified.
+ *  @date       06/15/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -36,7 +36,7 @@ static char str_buf[MSG_LENGTH * 2];
  *  @return     讀入的訊息長度，單位是 _bytes_
  **/
 int msg_input(int idx) {
-    int count = 0;
+    int bytes = 0;
     int fd = user_get_fd(idx);
     struct msg *msg_buffer = NULL;
 
@@ -45,11 +45,11 @@ int msg_input(int idx) {
     // 將 _訊息暫存區_ (msg_buffer) 的記憶體空間清空
     memset(msg_buffer, 0, sizeof(struct msg));
 
-    // count 代表 read(...) 讀到的字元 (character) 數
-    count = read(fd, msg_buffer, sizeof(struct msg));
+    // bytes 代表 read(...) 讀到的字元 (character) 數
+    bytes = read(fd, msg_buffer, sizeof(struct msg));
 
-    // 如果 count == 0，代表客戶端 (client) 已離線
-    if (count > 0) {
+    // 如果 bytes == 0，代表客戶端 (client) 已離線
+    if (bytes > 0) {
         // 移除字串尾端的 "\r\n" 字元
         msg_buffer->text[strcspn(msg_buffer->text, "\r\n")] = '\0';
 
@@ -77,7 +77,7 @@ int msg_input(int idx) {
         logging(str_buf);
     } // esle
 
-    return count;
+    return bytes;
 } // msg_input()
 
 /**

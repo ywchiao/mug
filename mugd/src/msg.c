@@ -3,7 +3,7 @@
  *  @brief      The msg utilities.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       06/07/2017 created.
- *  @date       06/08/2017 last modified.
+ *  @date       06/15/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -18,11 +18,11 @@
 /**
  *  將 msg->type 轉換為易讀的_文字格式_。
  *
- *  @param      msgtype 要轉換的訊息 msg type。
+ *  @param      type 要轉換的訊息 msg type。
  *
  *  @return     msg 型別 (msg->type) 的_文字名稱_
  **/
-char *msg_type2str(int msgtype) {
+char *msg_type2str(int type) {
     static char *msg_type[] = {
         "歡迎",
         "訊息",
@@ -32,9 +32,10 @@ char *msg_type2str(int msgtype) {
 
     int n_types = (sizeof(msg_type) / sizeof(char *));
 
-    msgtype = (msgtype > n_types) ? n_types : msgtype;
+    // 強制轉為可能的 msg_type 之一
+    type = (type > n_types) ? n_types : type;
 
-    return msg_type[msgtype];
+    return msg_type[type];
 } // msg_type2str()
 
 /**

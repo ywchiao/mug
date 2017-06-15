@@ -27,9 +27,11 @@
 #include "server.h"
 
 /**
- *  接受新的客戶端連線，同時放入 poll_fds 中，由 poll() 監控
+ *  接受新的客戶端連線。
  *
- *  @return     目前已連線的客戶端總數
+ *  @param  fd_server 存放 server_socket 的 file descripter (FD).
+ *
+ *  @return none.
  **/
 void guest_new(int fd_server) {
     int fd_guest = -1;

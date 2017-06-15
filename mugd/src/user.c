@@ -3,7 +3,7 @@
  *  @brief      The user routines of mugd.
  *  @author     Yiwei Chiao (ywchiao@gmail.com)
  *  @date       06/08/2017 created.
- *  @date       06/14/2017 last modified.
+ *  @date       06/15/2017 last modified.
  *  @version    0.1.0
  *  @copyright  MIT, (C) 2017 Yiwei Chiao
  *  @details
@@ -32,7 +32,7 @@ int user_counts(void) {
 } // user_counts()
 
 /**
- *  初始化_新_連線的客戶端使用者資料
+ *  初始化 _新_ 連線的客戶端使用者資料
  *
  *  @param[in]  fd_socket   連線客戶端的 socket fd
  *
@@ -60,6 +60,7 @@ void user_left(int id) {
  *  清除已標示離線的客戶端資訊
  *
  *  @param      none.
+ *
  *  @return     none.
  **/
 void user_clear(void) {
@@ -90,11 +91,11 @@ int user_get_fd(int idx) {
 } // user_get_fd()
 
 /**
- *  取得指定客戶端的使用者_暱稱_
+ *  取得指定客戶端的使用者 _暱稱_
  *
  *  @param[in]  id      連線客戶端索引
  *
- *  @return     指定客戶端的使用者_暱稱_指標
+ *  @return     指向特定客戶端的使用者 _暱稱_ 指標
  **/
 const char *user_get_nickname(int id) {
     return clients[id].nick;
@@ -104,7 +105,7 @@ const char *user_get_nickname(int id) {
  *  設定客戶的 nickname
  *
  *  @param[in]  id      連線客戶端索引
- *  @param[in]  nick    客戶端使用者_暱稱_的指標
+ *  @param[in]  nick    指向客戶端使用者 _暱稱_ 的指標
  *
  *  @return     none.
  **/
