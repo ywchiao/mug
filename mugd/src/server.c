@@ -100,7 +100,7 @@ void main_loop(int fd_server) {
 
         // 接收客戶端送來的訊息
         for (int i = 1; i < links; i ++) {
-            // 如果有_客戶_ (某個 fd) 傳送了資料進來，接收它
+            // 如果有 _客戶_ (某個 fd) 傳送了資料進來，接收它
             if ((poll_fds[i].revents & POLLIN) == POLLIN) {
                 if (msg_input(i) == 0) {
                     // 使用者已離線

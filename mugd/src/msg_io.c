@@ -53,7 +53,7 @@ int msg_input(int idx) {
         // 移除字串尾端的 "\r\n" 字元
         msg_buffer->text[strcspn(msg_buffer->text, "\r\n")] = '\0';
 
-        // 客戶端傳來它的_暱稱_ (nickname)
+        // 客戶端傳來它的 _暱稱_ (nickname)
         if (msg_buffer->type == MSG_NICKNAME) {
             // 將客戶 nickname 保留下來
             user_set_nickname(idx, msg_buffer->text);

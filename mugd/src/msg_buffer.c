@@ -31,6 +31,21 @@ bool is_empty(int index) {
 } // is_empty()
 
 /**
+ *  檢查訊息緩衝區是否 _已滿_
+ *
+ *  @param  none.
+ *
+ *  @return true: 訊息緩衝區已滿; false: otherwise.
+ **/
+bool is_full(void) {
+    bool isFull = false;
+
+    // 加上檢查的程式碼；
+
+    return isFull;
+} // is_full()
+
+/**
  *  傳回下一個可供 _讀取_ 的訊息物件。
  *
  *  將已讀取訊息索引 (index) 和暫存訊息的索引 (head) 作比較；
