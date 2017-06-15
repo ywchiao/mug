@@ -21,7 +21,7 @@
 #define BUF_MSGS    256
 
 bool is_empty(int);
-bool is_full(void);
+bool is_full(int);
 
 struct msg *buf4read(int);
 struct msg *buf4write(void);

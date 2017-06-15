@@ -16,7 +16,7 @@
 #include "msg_buffer.h"
 
 static int head = 0;
-static int tail = 0;
+//static int tail = 0;
 static struct msg buffers[BUF_MSGS];
 
 /**
@@ -33,11 +33,11 @@ bool is_empty(int index) {
 /**
  *  檢查訊息緩衝區是否 _已滿_
  *
- *  @param  none.
+ *  @param  index 目前客戶端已讀取訊息的素引
  *
  *  @return true: 訊息緩衝區已滿; false: otherwise.
  **/
-bool is_full(void) {
+bool is_full(int index) {
     bool isFull = false;
 
     // 加上檢查的程式碼；
